@@ -1,6 +1,6 @@
-# NGO-membership-shiny
-Visualizing environmental NGO membership over time
+# SEAtizen Science Shiny App
+Visualizing whale presence over time in the Santa Barbara Channel 
 
 Project Designers: Jasmine Vazin and Molly Williams
 
-Our app will visualize environmental NGO membership over time by zip code and/or congressional district. Bren researchers have explored how membership in these interest groups can offer a potential measure of what drives political mobilization. This app could be used to map regions where environmental policy or action is more likely to occur, or for related political issues linked to support of environmentalism.
+Our app will depict whale sightings recorded by the Channel Islands Naturalist Corps volunteers using the Whale Alert and Spotter Pro apps from 2012-present. Data will be accessed from the SQL database we created as a deliverable for our group project, SEAtizen Science. The app will visualize spatial data that can be filtered through queries to this database. Users can interact with the data by selecting for species and year, with the option to add model layers representing threats and habitat suitability created in Maxent. 

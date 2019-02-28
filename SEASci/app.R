@@ -11,46 +11,79 @@ library(shiny)
 library(tidyverse)
 library(shinythemes)
 library(RColorBrewer)
+library(dbplyr)
+library(RSQLite)
+library(stringr)
+library(lubridate)
 
-whales <- read_csv("sp_obis_westcoast.csv")
+#Now we'll get our data:
+
+whales<- read_csv("sp_obis_westcoast.csv")
+
+whalesdf <- as.data.frame(whales)
+
+whalesdf$vernacularName <- as.factor(whalesdf$vernacularName)
+class(whalesdf$vernacularName)
+
+new<- whalesdf %>% 
+  filter(vernacularName == "Blue Whale"| vernacularName =="Gray Whale"| vernacularName =="Humpback Whale") 
+
+ymd_hms(new$EventDate) 
+new$EventDate<- year(new$EventDate)
 
 
 
-# Define UI for application that draws a histogram
+#Create the user interface
+
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
+  
+  theme = shinytheme("slate"),
+  titlePanel("Marine Mammel Sightings"),
+  sidebarLayout(
+    sidebarPanel = (
+      radioButtons("side",
+                   "Species",
+                   c("Humpback Whale",
+                     "Blue Whale",
+                     "Gray Whale"))
+    ),
+    
+    mainPanel(
+      plotOutput(outputId="whaleplot")
     )
+    
+  )
 )
 
-# Define server logic required to draw a histogram
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    })
+  
+  output$whaleplot <- renderPlot({
+    
+    new %>% 
+      ggplot(aes(EventDate))+
+      geom_density(aes(fill = factor(vernacularName)), alpha = 0.5)+
+      theme(axis.text.y = element_blank())+
+      xlim(2013,2017)+
+      theme(plot.title = element_text(hjust=0.5, size = 16, face = "bold"))+
+      labs(title = "Figure 1: Cetaceans In Channel", 
+           x = "Year", 
+           y = "Density of Cetaceans", 
+           fill = "vernacularName")
+    
+    new %>% 
+      ggplot(aes(x = vernacularName, y = EventDate))+
+      geom_violin(fill = "lavenderblush3")+
+      ylim(2013,2017)+
+      theme(plot.title = element_text(hjust=0.5, size = 16, face = "bold"))+
+      labs(title = "Figure 2: Cetaceans in Channel", 
+           x = "Density of Cetaceans",
+           y = "Year")
+    
+  })
+  
+  
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+

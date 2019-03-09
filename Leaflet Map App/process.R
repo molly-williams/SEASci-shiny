@@ -1,3 +1,5 @@
+
+
 whales<- read_csv("sp_obis_westcoast.csv")
 
 whalesdf <- as.data.frame(whales)

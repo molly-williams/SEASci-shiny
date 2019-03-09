@@ -1,20 +1,21 @@
-server <- function(input,output, session){
-
-
-data <- reactive({
-  x <- df
+server <- function(input, output, session) {
   
-})
-
-output$mymap <- renderLeaflet({
-  df <- data()
   
-  m <- leaflet(data = df) %>%
-    addTiles() %>%
-    addMarkers(lng = ~lon,
-               lat = ~lat,
-               popup = paste("Species", df$vernacularName,"<br>",
-                             "Year",df$EventDate))
-  m
-})
+  data <- reactive({
+    x <- df
+    
+    
+    output$mymap <- renderLeaflet({
+      df <- data()
+      
+      m <- leaflet(data = df) %>%
+        addTiles() 
+        
+      
+      m
+    })
+  })
+  
+  
 }
+

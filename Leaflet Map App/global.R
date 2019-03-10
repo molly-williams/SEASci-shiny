@@ -21,5 +21,3 @@ library(sf)
 library(shinydashboard)
 
 
-df <- readRDS("./new.rds")
-

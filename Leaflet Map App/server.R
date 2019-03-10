@@ -1,21 +1,24 @@
+
 server <- function(input, output, session) {
   
   
-  data <- reactive({
-    x <- df
+  
+  output$mymap <- renderLeaflet({
+    
+    map<-new %>% 
+      filter(vernacularName==input$species) %>% 
+      filter(EventDate==input$year) 
     
     
-    output$mymap <- renderLeaflet({
-      df <- data()
-      
-      m <- leaflet(data = df) %>%
-        addTiles() 
-        
-      
-      m
-    })
+    leaflet(map) %>%
+      addTiles() %>%
+      addProviderTiles(providers$Esri.WorldImagery) %>% 
+      addAwesomeMarkers(lat=new$lat,lng=new$lon) 
   })
   
-  
 }
+
+
+
+
 

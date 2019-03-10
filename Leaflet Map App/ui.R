@@ -17,24 +17,18 @@ ui <- dashboardPage(
       
       sliderInput(inputId = "month",
                   label="Month:",
-                  min = 0,
+                  min = 1,
                   max=12,
-                  value = c(0,12)),
+                  value = c(1,12)),
       
       checkboxGroupInput(inputId = "species", 
                          label = "Species",
-                         choices = list("Blue Whale" = 1, "Grey Whale" = 2, "Humpback Whale" = 3),
+                         choices = list("Blue Whale" = 1, "Gray Whale" = 2, "Humpback Whale" = 3),
                          selected = 1),
       
       
       hr(),
       fluidRow(column(3, verbatimTextOutput("value")))
-        
-      # Species dropdown:   
-       #  selectInput(inputId = "species",
-        #                    label="Species:",
-         #                   selected = "Blue Whale",
-          #                  choices = sort(unique(new$vernacularName)))
       
       
       

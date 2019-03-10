@@ -19,6 +19,10 @@ whalesdf2 <- whalesdf %>%
 whalesdf2$date_simple <- as.Date(whalesdf2$EventDate, format="%Y/%M/%D")
 whalesdf2$year <- format(as.Date(whalesdf2$EventDate, format="%Y/%M/%d"),"%Y")
 whalesdf2$month <- format(as.Date(whalesdf2$date_simple, format="%Y/%m/%d"),"%m")
+whalesdf2$year <- as.numeric(whalesdf2$year)
+whalesdf2$month <- as.numeric(whalesdf2$month)
+
+
 
 new <- whalesdf2 %>% 
   filter(year > 1970)

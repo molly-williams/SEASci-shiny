@@ -5,15 +5,15 @@ server <- function(input,output, session) {
   output$mymap <- renderLeaflet({
     
     map <- new %>% 
-      filter(vernacularName==input$species) %>% 
       filter(year==input$year) %>% 
-      filter(month==input$month)
+      filter(month==input$month) %>% 
+      filter(vernacularName==input$species)
+      
+  
     
-    
-    leaflet(map) %>%
+    leaflet() %>%
       addTiles() %>%
       addProviderTiles(providers$Esri.WorldImagery) %>% 
-#      addAwesomeMarkers(lat=map$lat,lng=map$lon) %>% 
       addMarkers(lng = new$lon, 
                  lat = new$lat,
                  popup = paste(sep="", 

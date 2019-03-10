@@ -7,7 +7,8 @@ server <- function(input, output, session) {
     
     map<-new %>% 
       filter(vernacularName==input$species) %>% 
-      filter(EventDate==input$year) 
+      filter(EventDate==input$year) %>% 
+      
     
     
     leaflet(map) %>%

@@ -18,6 +18,9 @@ library(stringr)
 library(lubridate)
 library(dplyr)
 library(sf)
+library(sp)
+library(raster)
+library(rgeos)
 library(shinydashboard)
 
 

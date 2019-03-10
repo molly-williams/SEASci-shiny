@@ -9,10 +9,10 @@ ui <- dashboardPage(
       
       menuItem("Whale Map", tabName = "mymap", icon=icon("map"),startExpanded = FALSE),
       
-      years<- selectInput(inputId = "year", 
+      year <- selectInput(inputId = "year", 
                           label="Year:",
                           selected = "2018",
-                          choices = sort(unique(new$EventDate))),
+                          choices = sort(unique(new$year))),
       
       
       month <- sliderInput(inputId = "month",
@@ -21,7 +21,7 @@ ui <- dashboardPage(
                            max=12,
                            value = c(0,12)),
       
-      species<-   checkboxGroupInput("species", label = "Species", 
+      species <- checkboxGroupInput("species", label = "Species", 
                                      choices = list("Blue Whale" = 1, "Grey Whale" = 2, "Humpback Whale" = 3),
                                      selected = 1),
       

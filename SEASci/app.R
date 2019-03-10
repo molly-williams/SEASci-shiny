@@ -1,12 +1,5 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
+# Global 
+library(leaflet)
 library(shiny)
 library(tidyverse)
 library(shinythemes)
@@ -15,9 +8,17 @@ library(dbplyr)
 library(RSQLite)
 library(stringr)
 library(lubridate)
+library(dplyr)
+library(sf)
+library(sp)
+library(raster)
+library(rgeos)
+library(shinydashboard)
 
-#Now we'll get our data:
+r_colors <- rgb(t(col2rgb(colors()) / 255))
+names(r_colors) <- colors()
 
+# Process 
 whales<- read_csv("sp_obis_westcoast.csv")
 
 whalesdf <- as.data.frame(whales)
@@ -25,65 +26,118 @@ whalesdf <- as.data.frame(whales)
 whalesdf$vernacularName <- as.factor(whalesdf$vernacularName)
 class(whalesdf$vernacularName)
 
-new<- whalesdf %>% 
-  filter(vernacularName == "Blue Whale"| vernacularName =="Gray Whale"| vernacularName =="Humpback Whale") 
+whalesdf2 <- whalesdf %>% 
+  filter(vernacularName == "Blue Whale"| vernacularName =="Gray Whale"| vernacularName =="Humpback Whale") %>% 
+  filter(DecimalLatitude > 32 | DecimalLatitude < 39) %>% 
+  filter(DecimalLongitude < -116 | DecimalLongitude > -124) %>%
+  rename(lat = DecimalLatitude) %>% 
+  rename(lon = DecimalLongitude)
 
-ymd_hms(new$EventDate) 
-new$EventDate<- year(new$EventDate)
+# Isolate month and year from observation time stamp:
+
+whalesdf2$date_simple <- as.Date(whalesdf2$EventDate, format="%Y/%M/%D")
+whalesdf2$year <- format(as.Date(whalesdf2$EventDate, format="%Y/%M/%d"),"%Y")
+whalesdf2$month <- format(as.Date(whalesdf2$date_simple, format="%Y/%m/%d"),"%m")
+
+new <- whalesdf2 %>% 
+  filter(year > 1970)
 
 
 
-#Create the user interface
-
-ui <- fluidPage(
+ui <- dashboardPage(
   
-  theme = shinytheme("slate"),
-  titlePanel("Marine Mammel Sightings"),
-  sidebarLayout(
-    sidebarPanel = (
-      radioButtons("side",
-                   "Species",
-                   c("Humpback Whale",
-                     "Blue Whale",
-                     "Gray Whale"))
-    ),
+  
+  dashboardHeader(title = "Endangered Cetacean Sightings", titleWidth = 450),
+  
+  
+  dashboardSidebar(
+    sidebarMenu(
+      
+      menuItem("Whale Map", tabName = "mymap", icon=icon("map"),startExpanded = FALSE),
+      
+      selectInput(inputId = "year",
+                  label="Year:",
+                  selected = "2018",
+                  choices = sort(unique(new$year))),
+      
+      
+      sliderInput(inputId = "month",
+                  label="Month:",
+                  min = 0,
+                  max=12,
+                  value = c(0,12)),
+      
+      checkboxGroupInput(inputId = "species", 
+                         label = "Species",
+                         choices = list("Blue Whale" = 1, "Grey Whale" = 2, "Humpback Whale" = 3),
+                         selected = 1),
+      
+      
+      hr(),
+      fluidRow(column(3, verbatimTextOutput("value")))
+        
+      # Species dropdown:   
+       #  selectInput(inputId = "species",
+        #                    label="Species:",
+         #                   selected = "Blue Whale",
+          #                  choices = sort(unique(new$vernacularName)))
+      
+      
+      
+    )),
+  
+  
+  body<-dashboardBody(
     
-    mainPanel(
-      plotOutput(outputId="whaleplot")
-    )
-    
-  )
+    fluidRow(
+      column(width = 12,
+             box(width = NULL, solidHeader = TRUE,
+                 leafletOutput("mymap", height = 500)
+             ))))
 )
 
-server <- function(input, output) {
-  
-  output$whaleplot <- renderPlot({
-    
-    new %>% 
-      ggplot(aes(EventDate))+
-      geom_density(aes(fill = factor(vernacularName)), alpha = 0.5)+
-      theme(axis.text.y = element_blank())+
-      xlim(2013,2017)+
-      theme(plot.title = element_text(hjust=0.5, size = 16, face = "bold"))+
-      labs(title = "Figure 1: Cetaceans In Channel", 
-           x = "Year", 
-           y = "Density of Cetaceans", 
-           fill = "vernacularName")
-    
-    new %>% 
-      ggplot(aes(x = vernacularName, y = EventDate))+
-      geom_violin(fill = "lavenderblush3")+
-      ylim(2013,2017)+
-      theme(plot.title = element_text(hjust=0.5, size = 16, face = "bold"))+
-      labs(title = "Figure 2: Cetaceans in Channel", 
-           x = "Density of Cetaceans",
-           y = "Year")
-    
+
+
+server <- function(input, output, session) {
+
+  output$mymap <- renderLeaflet({
+    leaflet(map) %>%
+      addTiles() %>%
+      addProviderTiles(providers$Esri.WorldImagery) %>% 
+#      addAwesomeMarkers(lat=map$lat,lng=map$lon) %>% 
+      addMarkers(lng = new$lon, 
+                 lat = new$lat,
+                 popup = paste(sep="", 
+                               "<font size = 2 color = blue>", 
+                               "Scientific Name: ","</font>", 
+                               "<font size = 2 color = black>", 
+                               new$scientificName,"</font>", 
+                               "<br/>", 
+                               "<font size = 2 color = blue>", 
+                               "Total Sighted: ","</font>", 
+                               "<font size = 2 color = black>", 
+                               new$individualCount,"</font>",
+                               "<br/>", 
+                               "<font size = 2 color = blue>", 
+                               "Occurrence ID: ","</font>", 
+                               "<font size = 2 color = black>", 
+                               new$OccurenceID, "</font>",
+                               "<br/>", 
+                               "<font size = 2 color = blue>", 
+                               "Latitude: ","</font>", 
+                               "<font size = 2 color = black>", 
+                               new$lat, "</font>",
+                               "<br/>",
+                               "<font size = 2 color = blue>", 
+                               "Longitude: ","</font>", 
+                               "<font size = 2 color = black>", 
+                               new$lon, "</font>",
+                               "</b>"))
+      
+      
   })
   
   
 }
 
-# Run the application 
-shinyApp(ui = ui, server = server)
-
+shinyApp(ui, server)

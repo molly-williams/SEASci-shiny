@@ -47,6 +47,8 @@ new <- whalesdf2 %>%
     filter(individualCount < 10)
 
 
+write.csv(new, "newdata.csv")
+
 # Create shape file based on lat/longs:
 coordinates(new) <- ~lon+lat
 proj4string(new)<- CRS("++proj=longlat +datum=WGS84") # set coordinate system to WGS
@@ -97,26 +99,50 @@ ui <- fluidPage(
                                choices = list("Blue Whale" = 1, "Gray Whale" = 2, "Humpback Whale" = 3),
                                selected = 1)
             
-            
         ), # close parenthesis for sidebarPanel
         
-        # Show a plot of the generated distribution
+        # Create tabs for the reactive map, data, and summary of the data
         mainPanel(
-            leafletOutput("map")
+          tabsetPanel(
+            
+            #map
+            tabPanel("Whale Map", leafletOutput("map")),
+            
+            
+            #data
+            tabPanel("Data", dataTableOutput("table")),
+            
+            #summary
+            tabPanel("Summary", 
+                    textInput("txt", tags$h6("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. 
+                               This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life 
+                               in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly 
+                              into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports
+                              in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert 
+                              allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest
+                              datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.")),
+                verbatimTextOutput("summary"))
+          
         )
     )
+)
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
     
+  w <- reactive({read.csv("newdata.csv")})
+  
+
     # Creating the reactive output ('map')
+  
     output$map <- renderLeaflet({
+    
         
         whale_obs <- whale_shp %>% 
             filter(month == input$month) %>% 
-            filter(year == input$year) 
-#            filter(species == input$species)
+            filter(year == input$year) #%>% 
+            #filter(species == input$species)
         
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
@@ -124,9 +150,15 @@ server <- function(input, output) {
             tm_dots(size = "indvdlC", col = "indvdlC")
         
         tmap_leaflet(whale_map)
+        })
         
+        #Data Table
+        output$table <- renderDataTable({ new<- w() })
         
-    })
+        #Summary
+        output$summary <- renderText({ input$txt })
+        
+    
 }
 
 # Run the application 

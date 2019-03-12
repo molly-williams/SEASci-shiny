@@ -14,8 +14,8 @@ library(sp)
 library(raster)
 library(rgeos)
 library(shinydashboard)
-library(DT)
-library(crosstalk)
+
+
 # Process
 
 ### Import and wrangle sighting data    
@@ -66,6 +66,9 @@ whale_shp$Species <- as.factor(whale_shp$Species)
 whale_shp # check extents in output
 st_crs(whale_shp) # check projection; its WGS84
 
+ship_shp <- read_sf("ship_lane_2013.shp")
+st_crs(ship_shp)
+
 
 
 # Define UI for application that draws a histogram
@@ -78,7 +81,7 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             
-            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size."),
+            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance."),
             
             sliderInput(inputId = "month",
                         label = "Month:",
@@ -98,6 +101,7 @@ ui <- fluidPage(
                               label = "Species",
                               choices = c("Blue Whale", "Gray Whale", "Humpback Whale"),
                               selected = "Blue Whale")
+           
             
         ), # close parenthesis for sidebarPanel
         
@@ -116,7 +120,7 @@ ui <- fluidPage(
             tabPanel("Summary", 
                    
                      h3("Data Collection Summary"),
-                     p("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life  in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly  into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert  allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.
+                     p("This app presents data collected by volunteer citizen scientists using Spotter Pro, a smart phone app designed for observing marine species. The volunteers are part of the Channel Islands Naturalist Corps, a program started by Channel Island National Marine Sanctuary (CINMS) in the 1990s. The Naturalist Corps is comprised of over 160 volunteers who record data on marine life nearly every day aboard whale watching boats in the Santa Barbara Channel (SBC). When the program first started, sightings were recorded on paper logs. Since 2013, volunteers input data directly into the Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat out of Santa Barbara, CA. Only trained Naturalists can access the Spotter Pro app, but another CINMS mobile application called Whale Alert allows the general public to record sightings. This citizen-collected information has been used to create on of the largest datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes in 2013 by one nautical mile to prevent whale ship strikes.
 "),
                      
 p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") )
@@ -144,6 +148,7 @@ server <- function(input, output) {
         filter(month >= input$month[1] & month <= input$month[2]) %>% #filter BETWEEN function dplyr
         filter(year == input$year) %>%
         filter(Species == input$species)
+      
         
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
@@ -153,10 +158,14 @@ server <- function(input, output) {
                                    "Scientific Name:  " = "scntfcN",
                                    "Total Sighted: " = "Whales Sighted", 
                                    "Occurrence ID:   " = "OccrnID"),
-                    popup.format=list(OccrnID=list(format="s")))
+                    popup.format=list(OccrnID=list(format="s"))) +
+          tm_shape(ship_shp, name = "Shipping Lane (2013)", is.master = FALSE, group="ship_shp") +
+          tm_polygons(col = "grey50")
         
         
-        tmap_leaflet(whale_map)
+        tmap_leaflet(whale_map) %>% 
+          leaflet::hideGroup("Shipping Lane (2013)")
+        
         })
         
         #Data Table

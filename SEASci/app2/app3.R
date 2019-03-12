@@ -83,7 +83,7 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             
-            helpText("Visualize observations of three endangered whale species recorded on the California Coast from 2013-2018."),
+            helpText("Visualize observations of three endangered whale species recorded on the California Coast from 2013-2018. Select a year and move the slider to view observations collected during this time range"),
             
             sliderInput(inputId = "month",
                         label = "Month:",

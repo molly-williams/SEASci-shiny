@@ -43,7 +43,7 @@ whalesdf2$year <- as.numeric(whalesdf2$year)
 whalesdf2$month <- as.numeric(whalesdf2$month)
 
 new <- whalesdf2 %>%
-  dplyr::select(scientificName, OccurenceID, vernacularName, individualCount, lat, lon, occurenceStatus, date, month, year) %>%
+  dplyr::select(vernacularName, scientificName, OccurenceID, individualCount, lat, lon, occurenceStatus, date, month, year) %>%
   dplyr::filter(year > 1970) %>%
   dplyr::filter(individualCount < 10)
 
@@ -140,20 +140,23 @@ server <- function(input, output) {
     # Creating the reactive output ('map')
   
     output$map <- renderLeaflet({
-    
+      
+      
+      whale_obs <- whale_shp %>%
+        filter(month == input$month) %>% 
+        filter(year == input$year)
+#        filter(species == input$species)
         
-        whale_obs <- whale_shp %>% 
-            filter(month == input$month) %>% 
-            filter(year == input$year) #%>% 
-            #filter(species == input$species)
+        
         
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
             tm_shape(whale_obs) +
             tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Whales Sighted", 
-                    popup.vars = c("Date:" = "date", 
+                    popup.vars = c("Date: " = "date",
+                                   "Scientific Name:  " = "scntfcN",
                                    "Total Sighted: " = "Whales Sighted", 
-                                   "Occurrence ID: " = "OccrnID"),
+                                   "Occurrence ID:   " = "OccrnID"),
                     popup.format=list(OccrnID=list(format="s")))
         
         

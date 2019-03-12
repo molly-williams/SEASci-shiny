@@ -99,12 +99,12 @@ ui <- fluidPage(
                         selected = "2018",
                         choices = c(2013,2014,2015,2016,2017,2018)),
             
-            p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250)))
+            p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250))),
             
-#            checkboxGroupInput(inputId = "species", 
-#                               label = "Species",
-#                               choices = list("Blue Whale" = 1, "Gray Whale" = 2, "Humpback Whale" = 3),
-#                               selected = 1)
+           checkboxGroupInput(inputId = "species",
+                              label = "Species",
+                              choices = c("Blue Whale", "Gray Whale", "Humpback Whale"),
+                              selected = "Blue Whale")
             
         ), # close parenthesis for sidebarPanel
         
@@ -126,7 +126,7 @@ ui <- fluidPage(
                      p("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life  in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly  into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert  allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.
 "),
                      
-p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen Scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") )
+p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") )
                      
                      
 
@@ -149,9 +149,9 @@ server <- function(input, output) {
       
       
       whale_obs <- whale_shp %>%
-        filter(month == input$month) %>% 
-        filter(year == input$year)
-#        filter(species == input$species)
+        filter(month == input$month) %>% #filter BETWEEN function dplyr
+        filter(year == input$year) %>% 
+       filter(Species == input$species)
         
         
         

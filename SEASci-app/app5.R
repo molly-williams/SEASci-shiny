@@ -80,8 +80,23 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
+          
+          
+          tabPanel("Live Images", 
+                   conditionalPanel(condition = "input.species == 'Humpback Whale'",
+                                    img(src = "humpback-whale-pic.jpg", height = 150, width = 300)
+                   ),
+                   conditionalPanel(condition = "input.species == 'Blue Whale'",
+                                    img(src = "blue.jpg", height = 150, width = 300)
+                   ),
+                   conditionalPanel(condition = "input.species == 'Gray Whale'",
+                                    img(src = "gray.jpg", height = 150, width = 300)
+                   )
+                   # conditionalPanel(condition = "input.species" multiple = TRUE",
+                   #   img(src = "condor.jpg", height = 150, width = 300)
+                   # )
+          ),
             
-            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance."),
             
             sliderInput(inputId = "month",
                         label = "Month:",
@@ -95,7 +110,7 @@ ui <- fluidPage(
                         selected = "2018",
                         choices = c(2013,2014,2015,2016,2017,2018)),
             
-            p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250))),
+           # p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250))),
             
            checkboxGroupInput(inputId = "species",
                               label = "Species",
@@ -111,6 +126,8 @@ ui <- fluidPage(
             
             #map
             tabPanel("Whale Map", leafletOutput("map")),
+            
+            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance."),
             
             
             #data

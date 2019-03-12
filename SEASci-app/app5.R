@@ -125,9 +125,9 @@ ui <- fluidPage(
           tabsetPanel(
             
             #map
-            tabPanel("Whale Map", leafletOutput("map")),
+            tabPanel("Whale Map", leafletOutput("map"), helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance.")),
             
-            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance."),
+    
             
             
             #data

@@ -16,7 +16,6 @@ library(rgeos)
 library(shinydashboard)
 library(DT)
 library(crosstalk)
-
 # Process
 
 ### Import and wrangle sighting data    
@@ -95,7 +94,9 @@ ui <- fluidPage(
             selectInput(inputId = "year",
                         label = "Year:",
                         selected = "2018",
-                        choices = c(2013,2014,2015,2016,2017,2018))
+                        choices = c(2013,2014,2015,2016,2017,2018)),
+            
+            p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250)))
             
 #            checkboxGroupInput(inputId = "species", 
 #                               label = "Species",
@@ -117,19 +118,21 @@ ui <- fluidPage(
             
             #summary
             tabPanel("Summary", 
-                    textInput("txt", tags$h6("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. 
-                               This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life 
-                               in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly 
-                              into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports
-                              in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert 
-                              allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest
-                              datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.")),
-                verbatimTextOutput("summary"))
+                   
+                     h3("Data Collection Summary"),
+                     p("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life  in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly  into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert  allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.
+"),
+                     
+p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen Scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") )
+                     
+                     
+
+           
           
         )
     )
-)
-)
+))
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -166,10 +169,7 @@ server <- function(input, output) {
         #Data Table
         output$table <- renderDataTable({ new<- w() })
         
-        #Summary
-        output$summary <- renderText({ input$txt })
         
-    
 }
 
 # Run the application 

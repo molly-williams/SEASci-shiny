@@ -58,7 +58,10 @@ raster::shapefile(LL_coords, "WhaleShapefile2.shp", overwrite=TRUE)
 
 
 whale_shp <- read_sf("WhaleShapefile2.shp") %>% 
-  rename("Whales Sighted" = indvdlC)
+  rename("Whales Sighted" = indvdlC) %>% 
+  rename("Species" = vrnclrN)
+
+whale_shp$Species <- as.factor(whale_shp$Species)
   
 whale_shp # check extents in output
 st_crs(whale_shp) # check projection; its WGS84
@@ -83,7 +86,7 @@ ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
             
-            helpText("Visualize observations of three endangered whale species recorded on the California Coast from 2013-2018. Select a year and move the slider to view observations collected during this time range"),
+            helpText("Visualize observations of three endangered whale species recorded on the California Coast from 2013-2018. Select a year and move the month slider (1=Jan, 12=Dec) to view observations collected during this time range. Bubble size corresponds to sighting size."),
             
             sliderInput(inputId = "month",
                         label = "Month:",
@@ -155,7 +158,8 @@ server <- function(input, output) {
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
             tm_shape(whale_obs) +
-            tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Whales Sighted", 
+            tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Species",
+                    
                     popup.vars = c("Date: " = "date",
                                    "Scientific Name:  " = "scntfcN",
                                    "Total Sighted: " = "Whales Sighted", 

@@ -16,7 +16,6 @@ library(rgeos)
 library(shinydashboard)
 library(DT)
 library(crosstalk)
-
 # Process
 
 ### Import and wrangle sighting data    
@@ -47,7 +46,6 @@ new <- whalesdf2 %>%
   dplyr::filter(year > 1970) %>%
   dplyr::filter(individualCount < 10)
 
-new$vernacularName <- as.character(new$vernacularName)
 
 write.csv(new, "newdata.csv")
 
@@ -61,57 +59,45 @@ raster::shapefile(LL_coords, "WhaleShapefile2.shp", overwrite=TRUE)
 
 whale_shp <- read_sf("WhaleShapefile2.shp") %>% 
   rename("Whales Sighted" = indvdlC) %>% 
-  rename("vernacularName" = vrnclrN)
+  rename("Species" = vrnclrN)
 
-hump_shp <- whale_shp %>% 
-  filter(vernacularName == "Humpback Whale")
-
-blue_shp <- whale_shp %>% 
-  filter(vernacularName == "Blue Whale")
-
-gray_shp <- whale_shp %>% 
-  filter(vernacularName == "Gray Whale")
+whale_shp$Species <- as.factor(whale_shp$Species)
   
 whale_shp # check extents in output
 st_crs(whale_shp) # check projection; its WGS84
 
-
-### Make whale icon for observation points
-whale_icon <- makeIcon(
-    iconUrl = "https://cdn2.iconfinder.com/data/icons/funtime-animals-humans/60/004_004_whale_sea_ocean_animal_fountain-512.png",
-    iconWidth = 30, iconHeight = 30,
-    iconAnchorX = 10, iconAnchorY = 10
-    
-)
 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
     theme = shinytheme("cerulean"),
     # Application title
-    titlePanel("Endangered Cetacean Sightings"),
+    titlePanel("Endangered Cetacean Sightings 2013-2018"),
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
             
-            helpText("Visualize observations of three endangered whale species recorded along the California Coast from 2013-2018."),
+            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size."),
             
             sliderInput(inputId = "month",
                         label = "Month:",
                         min = 1,
                         max = 12,
-                        value = c(1,12)),
+                        value = range(whale_shp$month),
+                        step = 1),
             
             selectInput(inputId = "year",
                         label = "Year:",
                         selected = "2018",
                         choices = c(2013,2014,2015,2016,2017,2018)),
             
-            checkboxGroupInput(inputId = "vernacularName", 
-                               label = "Species",
-                               choices = list("Blue Whale" = 1, "Gray Whale" = 2, "Humpback Whale" = 3),
-                               selected = 1)
+            p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250))),
+            
+           checkboxGroupInput(inputId = "species",
+                              label = "Species",
+                              choices = c("Blue Whale", "Gray Whale", "Humpback Whale"),
+                              selected = "Blue Whale")
             
         ), # close parenthesis for sidebarPanel
         
@@ -128,19 +114,21 @@ ui <- fluidPage(
             
             #summary
             tabPanel("Summary", 
-                    textInput("txt", tags$h6("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. 
-                               This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life 
-                               in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly 
-                              into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports
-                              in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert 
-                              allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest
-                              datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.")),
-                verbatimTextOutput("summary"))
+                   
+                     h3("Data Collection Summary"),
+                     p("The Channel Island National Marine Sanctuary (CINMS) has been overseeing a citizen science project since the 1990s. This initiative is known as the Channel Islands Natualists Corps, comprised of over 160 volunteers collecting data on marine life  in the Santa Barbara Channel (SBC). Initially, cetacean sightings were recorded on paper logs. Since 2013, volunteers input data directly  into the Whale Spotter Pro mobile application while aboard marine vessels, typically the Condor Express whale watching boat that ports in Santa Barbara, CA. Only trained CINC volunteers can access the Spotter Pro app, but another CINMS mobile application called Whale Alert  allows the general public to record cetacean sightings. This citizen collected information has been used to create on of the largest datasets on marine mammals in the SBC, and was even used by CINMS to move shipping lanes by one nautical mile to prevent whale ship strikes.
+"),
+                     
+p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") )
+                     
+                     
+
+           
           
         )
     )
-)
-)
+))
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
@@ -152,38 +140,29 @@ server <- function(input, output) {
   
     output$map <- renderLeaflet({
       
-      
       whale_obs <- whale_shp %>%
-        filter(month == input$month) %>% 
-        filter(year == input$year)
-#        filter(species == input$vernacularName)
-        
-      blue_obs <- blue_shp %>%
-        filter(month == input$month) %>% 
-        filter(year == input$year)
+        filter(month >= input$month[1] & month <= input$month[2]) %>% #filter BETWEEN function dplyr
+        filter(year == input$year) %>%
+        filter(Species == input$species)
         
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
             tm_shape(whale_obs) +
-            tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Whales Sighted", 
+            tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Species",
                     popup.vars = c("Date: " = "date",
                                    "Scientific Name:  " = "scntfcN",
                                    "Total Sighted: " = "Whales Sighted", 
                                    "Occurrence ID:   " = "OccrnID"),
-                    popup.format=list(OccrnID=list(format="s")))        
+                    popup.format=list(OccrnID=list(format="s")))
         
         
         tmap_leaflet(whale_map)
-
         })
         
         #Data Table
         output$table <- renderDataTable({ new<- w() })
         
-        #Summary
-        output$summary <- renderText({ input$txt })
         
-    
 }
 
 # Run the application 

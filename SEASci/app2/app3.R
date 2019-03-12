@@ -36,15 +36,16 @@ whalesdf2 <- whalesdf %>%
 
 # Isolate month and year from observation time stamp:
 
-whalesdf2$date_simple <- as.Date(whalesdf2$EventDate, format="%Y/%M/%D")
+whalesdf2$date <- as.Date(whalesdf2$EventDate, format="%Y/%M/%D")
 whalesdf2$year <- format(as.Date(whalesdf2$EventDate, format="%Y/%M/%d"),"%Y")
-whalesdf2$month <- format(as.Date(whalesdf2$date_simple, format="%Y/%m/%d"),"%m")
+whalesdf2$month <- format(as.Date(whalesdf2$date, format="%Y/%m/%d"),"%m")
 whalesdf2$year <- as.numeric(whalesdf2$year)
 whalesdf2$month <- as.numeric(whalesdf2$month)
 
-new <- whalesdf2 %>% 
-    filter(year > 1970) %>% 
-    filter(individualCount < 10)
+new <- whalesdf2 %>%
+  dplyr::select(scientificName, OccurenceID, vernacularName, individualCount, lat, lon, occurenceStatus, date, month, year) %>%
+  dplyr::filter(year > 1970) %>%
+  dplyr::filter(individualCount < 10)
 
 
 write.csv(new, "newdata.csv")
@@ -57,7 +58,9 @@ LL_coords <- spTransform(new,CRS("+proj=longlat"))
 raster::shapefile(LL_coords, "WhaleShapefile2.shp", overwrite=TRUE)
 
 
-whale_shp <- read_sf("WhaleShapefile2.shp")
+whale_shp <- read_sf("WhaleShapefile2.shp") %>% 
+  rename("Whales Sighted" = indvdlC)
+  
 whale_shp # check extents in output
 st_crs(whale_shp) # check projection; its WGS84
 
@@ -75,7 +78,7 @@ whale_icon <- makeIcon(
 ui <- fluidPage(
     theme = shinytheme("cerulean"),
     # Application title
-    titlePanel("Endangered Cetacean Map"),
+    titlePanel("Endangered Cetacean Sightings"),
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -92,12 +95,12 @@ ui <- fluidPage(
             selectInput(inputId = "year",
                         label = "Year:",
                         selected = "2018",
-                        choices = c(2013,2014,2015,2016,2017,2018)),
+                        choices = c(2013,2014,2015,2016,2017,2018))
             
-            checkboxGroupInput(inputId = "species", 
-                               label = "Species",
-                               choices = list("Blue Whale" = 1, "Gray Whale" = 2, "Humpback Whale" = 3),
-                               selected = 1)
+#            checkboxGroupInput(inputId = "species", 
+#                               label = "Species",
+#                               choices = list("Blue Whale" = 1, "Gray Whale" = 2, "Humpback Whale" = 3),
+#                               selected = 1)
             
         ), # close parenthesis for sidebarPanel
         
@@ -147,7 +150,12 @@ server <- function(input, output) {
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
             tm_shape(whale_obs) +
-            tm_dots(size = "indvdlC", col = "indvdlC")
+            tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Whales Sighted", 
+                    popup.vars = c("Date:" = "date", 
+                                   "Total Sighted: " = "Whales Sighted", 
+                                   "Occurrence ID: " = "OccrnID"),
+                    popup.format=list(OccrnID=list(format="s")))
+        
         
         tmap_leaflet(whale_map)
         })

@@ -67,32 +67,25 @@ whale_shp # check extents in output
 st_crs(whale_shp) # check projection; its WGS84
 
 
-### Make whale icon for observation points
-whale_icon <- makeIcon(
-    iconUrl = "https://cdn2.iconfinder.com/data/icons/funtime-animals-humans/60/004_004_whale_sea_ocean_animal_fountain-512.png",
-    iconWidth = 30, iconHeight = 30,
-    iconAnchorX = 10, iconAnchorY = 10
-    
-)
-
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
     theme = shinytheme("cerulean"),
     # Application title
-    titlePanel("Endangered Cetacean Sightings"),
+    titlePanel("Endangered Cetacean Sightings 2013-2018"),
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
             
-            helpText("Visualize observations of three endangered whale species recorded on the California Coast from 2013-2018. Select a year and move the month slider (1=Jan, 12=Dec) to view observations collected during this time range. Bubble size corresponds to sighting size."),
+            helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble size corresponds to sighting size."),
             
             sliderInput(inputId = "month",
                         label = "Month:",
                         min = 1,
                         max = 12,
-                        value = c(1,12)),
+                        value = range(whale_shp$month),
+                        step = 1),
             
             selectInput(inputId = "year",
                         label = "Year:",
@@ -147,19 +140,15 @@ server <- function(input, output) {
   
     output$map <- renderLeaflet({
       
-      
       whale_obs <- whale_shp %>%
-        filter(month == input$month) %>% #filter BETWEEN function dplyr
-        filter(year == input$year) %>% 
-       filter(Species == input$species)
-        
-        
+        filter(month >= input$month[1] & month <= input$month[2]) %>% #filter BETWEEN function dplyr
+        filter(year == input$year) %>%
+        filter(Species == input$species)
         
         whale_map <- 
             tm_basemap("Esri.WorldImagery") +
             tm_shape(whale_obs) +
             tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Species",
-                    
                     popup.vars = c("Date: " = "date",
                                    "Scientific Name:  " = "scntfcN",
                                    "Total Sighted: " = "Whales Sighted", 

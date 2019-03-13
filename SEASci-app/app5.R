@@ -84,13 +84,13 @@ ui <- fluidPage(
           
           tabPanel("Live Images", 
                    conditionalPanel(condition = "input.species == 'Humpback Whale'",
-                                    img(src = "humpback-whale-pic.jpg", height = 150, width = 300)
+                                    img(src = "humpback-whale-pic.jpg", height = 150, width = "100%")
                    ),
                    conditionalPanel(condition = "input.species == 'Blue Whale'",
-                                    img(src = "blue.jpg", height = 150, width = 300)
+                                    img(src = "blue.jpg", height = 150, width = "100%")
                    ),
                    conditionalPanel(condition = "input.species == 'Gray Whale'",
-                                    img(src = "gray.jpg", height = 150, width = 300)
+                                    img(src = "gray.jpg", height = 150, width = "100%")
                    )
                    # conditionalPanel(condition = "input.species" multiple = TRUE",
                    #   img(src = "condor.jpg", height = 150, width = 300)
@@ -168,16 +168,16 @@ server <- function(input, output) {
       
         
         whale_map <- 
-            tm_basemap("Esri.WorldImagery") +
-            tm_shape(whale_obs) +
-            tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Species",
-                    popup.vars = c("Date: " = "date",
+          tm_basemap("Esri.WorldImagery") +
+          tm_shape(ship_shp, name = "Shipping Lane (2013)", is.master = FALSE, group="ship_shp") +
+          tm_polygons(col = "grey50")+
+          tm_shape(whale_obs) +
+          tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Species",
+                  popup.vars = c("Date: " = "date",
                                    "Scientific Name:  " = "scntfcN",
                                    "Total Sighted: " = "Whales Sighted", 
                                    "Occurrence ID:   " = "OccrnID"),
-                    popup.format=list(OccrnID=list(format="s"))) +
-          tm_shape(ship_shp, name = "Shipping Lane (2013)", is.master = FALSE, group="ship_shp") +
-          tm_polygons(col = "grey50")
+                  popup.format=list(OccrnID=list(format="s")))
         
         
         tmap_leaflet(whale_map) %>% 

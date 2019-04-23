@@ -131,7 +131,8 @@ ui <- fluidPage(
             
             
             #data
-            tabPanel("Data", dataTableOutput("table")),
+            #tabPanel("Data", dataTableOutput("table")),
+            
             
             #summary
             tabPanel("Summary", 
@@ -143,7 +144,17 @@ ui <- fluidPage(
                      p("Freight ships are one of the biggest direct threats to whales in our world's oceans, due to ship strikes. The data presented in this application was used by the National Oceanic and Atmospheric Administration to provide evidence for moving the international shipping lane along the California Coast by one nautical mile away from whale feeding areas in 2013. In part, this would not have been possible without the effort of the Channel Islands Naturalist Corps- and is a case study evidencing how citizen science can be applied to policy. 
 "),
                      
-p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") )
+p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") ),
+
+          #About us!
+          tabPanel("About Us", 
+         
+         h3("About Us"),
+         p("Molly Williams and Jasmine Vazin are two graduate students at the Bren School of Environmental Science and Management at UCSB. For their group thesis project, they have been working with the Channel Islands National Marine Sanctuary and the Oceanic and Atmospheric Administration on their citizen science project for whales along the California Coast. They created this app to visualize the amazing data that the Naturalist Corps volunteers have collected on endangerd baleen whales in the SBC.  If you want to find out more about the project, check out the groups webpage at www.seatizenscience.org! 
+           "),
+        
+         p(div(img(src="photo1.png", height = 400, width =150), style="text-align: center;"), h6("The app creators, Jasmine Vazin and Molly Williams.", align = "center") )
+
                      
                      
 
@@ -151,7 +162,7 @@ p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor E
           
         )
     )
-))
+)))
 
 
 # Define server logic required to draw a histogram

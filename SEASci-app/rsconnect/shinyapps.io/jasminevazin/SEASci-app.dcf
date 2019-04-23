@@ -1,0 +1,12 @@
+name: SEASci-app
+title: SEASci-app
+username:
+account: jasminevazin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 839288
+bundleId: 1987151
+url: https://jasminevazin.shinyapps.io/SEASci-app/
+when: 1554402548.81978
+asMultiple: FALSE
+asStatic: FALSE

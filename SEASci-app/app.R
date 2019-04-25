@@ -14,12 +14,13 @@ library(sp)
 library(raster)
 library(rgeos)
 library(shinydashboard)
+library(shinyWidgets)
 
 
 # Process
 
 ### Import and wrangle sighting data    
-whales<- read_csv("sp_obis_westcoast.csv")
+whales<- read_csv("sp_wa_sb.csv")
 
 whalesdf <- as.data.frame(whales)
 
@@ -42,7 +43,7 @@ whalesdf2$year <- as.numeric(whalesdf2$year)
 whalesdf2$month <- as.numeric(whalesdf2$month)
 
 new <- whalesdf2 %>%
-  dplyr::select(vernacularName, scientificName, OccurenceID, individualCount, lat, lon, occurenceStatus, date, month, year) %>%
+  dplyr::select(vernacularName, scientificName, OccurenceID, individualCount, app_used, lat, lon, occurenceStatus, date, month, year) %>%
   dplyr::filter(year > 1970) %>%
   dplyr::filter(individualCount < 10)
 
@@ -59,7 +60,9 @@ raster::shapefile(LL_coords, "WhaleShapefile2.shp", overwrite=TRUE)
 
 whale_shp <- read_sf("WhaleShapefile2.shp") %>% 
   rename("Whales Sighted" = indvdlC) %>% 
-  rename("Species" = vrnclrN)
+  rename("Species" = vrnclrN) %>% 
+  rename("app" = app_usd)
+
 
 whale_shp$Species <- as.factor(whale_shp$Species)
   
@@ -69,13 +72,19 @@ st_crs(whale_shp) # check projection; its WGS84
 ship_shp <- read_sf("ship_lane_2013.shp")
 st_crs(ship_shp)
 
+sanctuary_shp <- read_sf("cinms1.shp")
+st_crs(sanctuary_shp)
+
 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  setBackgroundColor(
+    color = c("#F7FBFF", "#2171B5"),
+    gradient = "linear"),
     theme = shinytheme("cerulean"),
     # Application title
-    titlePanel("Endangered Cetacean Sightings 2013-2018"),
+    titlePanel("Endangered Cetacean Sightings 2013-2019"),
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -108,24 +117,34 @@ ui <- fluidPage(
             selectInput(inputId = "year",
                         label = "Year:",
                         selected = "2018",
-                        choices = c(2013,2014,2015,2016,2017,2018)),
+                        choices = c(2013,2014,2015,2016,2017,2018,2019)),
+          
+          selectInput(inputId = "app",
+                      label = "App Used:",
+                      selected = "spotter_pro",
+                      choices = c("spotter_pro","whale_alert")),
             
            # p(div(img(src='humpback-whale-pic.jpg', height = 150, width = 250))),
             
            checkboxGroupInput(inputId = "species",
                               label = "Species",
                               choices = c("Blue Whale", "Gray Whale", "Humpback Whale"),
-                              selected = "Blue Whale")
+                              selected = "Humpback Whale")
            
             
         ), # close parenthesis for sidebarPanel
         
         # Create tabs for the reactive map, data, and summary of the data
         mainPanel(
+          tags$style(type="text/css",
+                     ".shiny-output-error { visibility: hidden; }",
+                     ".shiny-output-error:before { visibility: hidden; }"
+          ),
           tabsetPanel(
             
             #map
-            tabPanel("Whale Map", leafletOutput("map"), helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance.")),
+            tabPanel("Whale Map", width = "100%",
+                     height = "100%",tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"), leafletOutput("map"), helpText("Visualize observations of three endangered whale species recorded along the California Coast by selecting a year and a month range (1=Jan, 12=Dec). Bubble diameter corresponds to sighting size. Click the layer icon to toggle whale observation and shipping lane appearance.")),
             
     
             
@@ -147,13 +166,16 @@ ui <- fluidPage(
 p(div(img(src='whale.jpeg', height=400, width = 600)), a(br(em("Source: Condor Express")), href = "https://condorexpress.com/")), h6("Citizen scientists aboard the condor express take photos of Humpbacks that surfaced near the boat. These photos are used to identify individual whales as a part of the dataset created by Channel Islands Naturalist Corps volunteers.") ),
 
           #About us!
-          tabPanel("About Us", 
+          tabPanel("Meet the Team", align="center",
          
          h3("About Us"),
-         p("Molly Williams and Jasmine Vazin are two graduate students at the Bren School of Environmental Science and Management at UCSB. For their group thesis project, they have been working with the Channel Islands National Marine Sanctuary and the Oceanic and Atmospheric Administration on their citizen science project for whales along the California Coast. They created this app to visualize the amazing data that the Naturalist Corps volunteers have collected on endangerd baleen whales in the SBC.  If you want to find out more about the project, check out the groups webpage at www.seatizenscience.org! 
-           "),
+         p("We are a team of graduate students at the UCSB Bren School of Environmental Science and Management. Our thesis project focuses on delineating methods and protocols for NOAA citizen science data to transform it into a format that can be easily applied to scientific and policy pursuits for whale monitoring in the Santa Barbara Channel. Our methods and final product can be applied to other citizen science projects to automatically format and clean data sets to enhance their use.",tags$li(a(href ="http://www.seatizenscience.org/",style = "color:black",
+                       img(src='whale-fi_small.png',
+                           title = "SEAtizen Science", height = "30px"),
+                       style = "padding-top:10px; padding-bottom:10px;"),
+                     class = "dropdown")),
         
-         p(div(img(src="photo1.png", height = 400, width =150), style="text-align: center;"), h6("The app creators, Jasmine Vazin and Molly Williams.", align = "center") )
+         p(div(img(src="team2.JPG", height="100%", width = "100%"), style="text-align: center;"), h5("Left to Right: Charlene Kormondy, Niklas Greissbaum, Molly Williams, Sean Goral, Jasmine Vazin & Rae Fuhrman", align = "center", style = "color:black") )
 
                      
                      
@@ -178,24 +200,32 @@ server <- function(input, output) {
       whale_obs <- whale_shp %>%
         filter(month >= input$month[1] & month <= input$month[2]) %>% #filter BETWEEN function dplyr
         filter(year == input$year) %>%
-        filter(Species == input$species)
+        filter(Species == input$species) %>% 
+        filter(app == input$app)
       
         
         whale_map <- 
           tm_basemap("Esri.WorldImagery") +
           tm_shape(ship_shp, name = "Shipping Lane (2013)", is.master = FALSE, group="ship_shp") +
-          tm_polygons(col = "grey50")+
+          tm_polygons(col = "firebrick1", alpha = 0.5)+
+          tm_shape(sanctuary_shp, name = "Channel Islands National Marine Sanctuary", is.master = FALSE, group="sanctuary_shp")+
+          tm_polygons(col = "deepskyblue3", alpha = 0.5)+
           tm_shape(whale_obs) +
           tm_dots(size = "Whales Sighted", alpha = 0.5, col = "Species",
                   popup.vars = c("Date: " = "date",
                                    "Scientific Name:  " = "scntfcN",
-                                   "Total Sighted: " = "Whales Sighted", 
+                                   "Total Sighted: " = "Whales Sighted",
+                                 "App Used: " = "app",
                                    "Occurrence ID:   " = "OccrnID"),
                   popup.format=list(OccrnID=list(format="s")))
         
         
         tmap_leaflet(whale_map) %>% 
-          leaflet::hideGroup("Shipping Lane (2013)")
+          leaflet::hideGroup("Shipping Lane (2013)") %>% 
+          leaflet::hideGroup("Channel Islands National Marine Sanctuary") %>%            
+          addScaleBar(position = 'topright') %>% 
+          addProviderTiles(providers$Hydda.RoadsAndLabels)
+          
         
         })
         

@@ -26,9 +26,10 @@ whalesdf <- as.data.frame(whales)
 
 whalesdf$vernacularName <- as.factor(whalesdf$vernacularName)
 class(whalesdf$vernacularName)
+whalesdf$vernacularName[whalesdf$vernacularName=="Humpback"]<-"Humpback Whale"
 
 whalesdf2 <- whalesdf %>% 
-    filter(vernacularName == "Blue Whale"| vernacularName =="Gray Whale"| vernacularName =="Humpback Whale") %>% 
+    filter(str_detect(tolower(vernacularName), pattern = "whale")) %>% 
     filter(DecimalLatitude > 32 | DecimalLatitude < 39) %>% 
     filter(DecimalLongitude < -116 | DecimalLongitude > -124) %>%
     rename(lat = DecimalLatitude) %>% 
@@ -92,7 +93,7 @@ ui <- fluidPage(
           
           
           tabPanel("Live Images", 
-                   conditionalPanel(condition = "input.species == 'Humpback Whale'",
+                   conditionalPanel(condition = "input.species == '%Humpback%'",
                                     img(src = "humpback-whale-pic.jpg", height = 150, width = "100%")
                    ),
                    conditionalPanel(condition = "input.species == 'Blue Whale'",
@@ -128,7 +129,7 @@ ui <- fluidPage(
             
            checkboxGroupInput(inputId = "species",
                               label = "Species",
-                              choices = c("Blue Whale", "Gray Whale", "Humpback Whale"),
+                              choices = c("Blue Whale", "Fin Whale", "Killer Whale", "Minke Whale", "Short Finned Pilot Whale", "Gray Whale", "Humpback Whale"),
                               selected = "Humpback Whale")
            
             

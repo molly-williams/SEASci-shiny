@@ -21,6 +21,7 @@ library(shinyWidgets)
 
 ### Import and wrangle sighting data    
 whales<- read_csv("sp_wa_sb.csv")
+#trips <- read_csv("trips.csv")
 
 whalesdf <- as.data.frame(whales)
 
@@ -33,7 +34,8 @@ whalesdf2 <- whalesdf %>%
     filter(DecimalLatitude > 32 | DecimalLatitude < 39) %>% 
     filter(DecimalLongitude < -116 | DecimalLongitude > -124) %>%
     rename(lat = DecimalLatitude) %>% 
-    rename(lon = DecimalLongitude)
+    rename(lon = DecimalLongitude)# %>% 
+   # rename(collectionID = trip_id)
 
 # Isolate month and year from observation time stamp:
 
@@ -48,6 +50,7 @@ new <- whalesdf2 %>%
   dplyr::filter(year > 1970) %>%
   dplyr::filter(individualCount < 10)
 
+#new1<-left_join(trips,new,by=trip_id)
 
 write.csv(new, "newdata.csv")
 

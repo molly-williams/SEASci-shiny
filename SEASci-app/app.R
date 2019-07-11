@@ -30,7 +30,7 @@ class(whalesdf$vernacularName)
 whalesdf$vernacularName[whalesdf$vernacularName=="Humpback"]<-"Humpback Whale"
 
 whalesdf2 <- whalesdf %>% 
-    filter(str_detect(tolower(vernacularName), pattern = "whale")) %>% 
+    filter(str_detect(tolower(vernacularName), pattern = c("blue whale","fin whale","gray whale", "minke whale","humpback whale")))%>% 
     filter(DecimalLatitude > 32 | DecimalLatitude < 39) %>% 
     filter(DecimalLongitude < -116 | DecimalLongitude > -124) %>%
     rename(lat = DecimalLatitude) %>% 
@@ -88,7 +88,7 @@ ui <- fluidPage(
     gradient = "linear"),
     theme = shinytheme("cerulean"),
     # Application title
-    titlePanel("Endangered Cetacean Sightings 2013-2019"),
+    titlePanel("Cetacean Sightings 2013-2019"),
     
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
@@ -96,7 +96,7 @@ ui <- fluidPage(
           
           
           tabPanel("Live Images", 
-                   conditionalPanel(condition = "input.species == '%Humpback%'",
+                   conditionalPanel(condition = "input.species == 'Humpback Whale'",
                                     img(src = "humpback-whale-pic.jpg", height = 150, width = "100%")
                    ),
                    conditionalPanel(condition = "input.species == 'Blue Whale'",
@@ -104,10 +104,13 @@ ui <- fluidPage(
                    ),
                    conditionalPanel(condition = "input.species == 'Gray Whale'",
                                     img(src = "gray.jpg", height = 150, width = "100%")
-                   )
-                   # conditionalPanel(condition = "input.species" multiple = TRUE",
-                   #   img(src = "condor.jpg", height = 150, width = 300)
-                   # )
+                   ),
+                   conditionalPanel(condition = "input.species == 'Fin Whale'",
+                                    img(src = "fin.jpg", height = 150, width = 300)
+                  ),
+                  conditionalPanel(condition = "input.species == 'Minke Whale'",
+                                   img(src = "minke.jpg", height = 150, width = 300)
+                  )
           ),
             
             
@@ -132,7 +135,7 @@ ui <- fluidPage(
             
            checkboxGroupInput(inputId = "species",
                               label = "Species",
-                              choices = c("Blue Whale", "Fin Whale", "Killer Whale", "Minke Whale", "Short Finned Pilot Whale", "Gray Whale", "Humpback Whale"),
+                              choices = c("Blue Whale", "Gray Whale", "Humpback Whale", "Fin Whale", "Minke Whale"),
                               selected = "Humpback Whale")
            
             

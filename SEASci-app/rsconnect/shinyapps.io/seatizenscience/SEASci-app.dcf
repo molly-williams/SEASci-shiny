@@ -5,8 +5,8 @@ account: seatizenscience
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 889427
-bundleId: 2039746
+bundleId: 2223175
 url: https://seatizenscience.shinyapps.io/SEASci-app/
-when: 1556232083.59859
+when: 1562879197.14763
 asMultiple: FALSE
 asStatic: FALSE
